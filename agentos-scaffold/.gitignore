@@ -1,0 +1,30 @@
+# --- Python / backend ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# SQLite + Chroma data (regenerated locally, don't commit)
+backend/database/*.db
+backend/database/chroma_store/
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep
+
+# --- Node / frontend ---
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# --- Env files ---
+.env
+backend/.env
+frontend/.env
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
