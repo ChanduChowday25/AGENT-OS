@@ -10,3 +10,13 @@ export async function listConversations() {
   const { data } = await api.get("/conversations");
   return data;
 }
+
+export async function getConversation(conversationId) {
+  const { data } = await api.get(`/conversations/${conversationId}`);
+  return data;
+}
+
+export async function deleteConversation(conversationId) {
+  const { data } = await api.delete(`/conversations/${conversationId}`);
+  return data;
+}

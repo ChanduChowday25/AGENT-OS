@@ -81,6 +81,14 @@ export default function Analytics() {
     }
   }
 
+  const analysis = result?.result;
+  const datasetInfo = analysis?.dataset_info;
+  const hasDatasetOverview = datasetInfo && (
+    datasetInfo.rows !== undefined ||
+    datasetInfo.columns !== undefined ||
+    Array.isArray(datasetInfo.numeric_columns)
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <header className="border-b border-white/[0.08] pb-6">
@@ -199,9 +207,63 @@ export default function Analytics() {
               Processing the dataset...
             </div>
           ) : result ? (
-            <pre className="max-h-[34rem] overflow-auto whitespace-pre-wrap break-words border border-white/[0.08] bg-[#080e17]/80 p-4 font-mono text-xs leading-6 text-white/65">
-              {JSON.stringify(result, null, 2)}
-            </pre>
+            <div className="max-h-[34rem] overflow-auto border border-white/[0.08] bg-[#080e17]/80 p-5 sm:p-6">
+              <div className="border-b border-white/[0.08] pb-6">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-teal-200/55">Analysis Complete</p>
+                {analysis?.answer && (
+                  <p className="mt-3 text-lg leading-8 text-white/90">{analysis.answer}</p>
+                )}
+              </div>
+
+              {(analysis?.operation || analysis?.column || analysis?.result !== undefined) && (
+                <div className="grid gap-4 border-b border-white/[0.08] py-5 sm:grid-cols-3">
+                  {analysis.operation && (
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/35">Operation</p>
+                      <p className="mt-2 text-sm capitalize text-white/75">{analysis.operation}</p>
+                    </div>
+                  )}
+                  {analysis.column && (
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/35">Column</p>
+                      <p className="mt-2 truncate text-sm text-white/75">{analysis.column}</p>
+                    </div>
+                  )}
+                  {analysis.result !== undefined && analysis.result !== null && (
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/35">Result</p>
+                      <p className="mt-1 text-2xl font-medium tracking-tight text-cyan-100/90">{analysis.result}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {hasDatasetOverview && (
+                <div className="pt-5">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-teal-200/55">Dataset Overview</p>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                    {datasetInfo.rows !== undefined && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-white/35">Rows</p>
+                        <p className="mt-2 text-sm text-white/75">{datasetInfo.rows}</p>
+                      </div>
+                    )}
+                    {datasetInfo.columns !== undefined && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-white/35">Columns</p>
+                        <p className="mt-2 text-sm text-white/75">{datasetInfo.columns}</p>
+                      </div>
+                    )}
+                    {Array.isArray(datasetInfo.numeric_columns) && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-white/35">Numeric Columns</p>
+                        <p className="mt-2 text-sm text-white/75">{datasetInfo.numeric_columns.length}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex min-h-56 items-center justify-center border border-dashed border-white/[0.08] px-6 text-center text-sm leading-6 text-white/30">
               Upload a dataset and describe the analysis you need.

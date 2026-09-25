@@ -678,6 +678,16 @@ class AnalyticsAgent(BaseAgent):
             )
         )
 
+        has_value_listing = bool(
+            re.search(
+                r"\b(?:list|show|tell me)\b.*\b(?:names?|"
+                r"districts?|organizations?|categories?|values?)\b"
+                r"|\b(?:distinct|different)\s+values?\b"
+                r"|\b(?:organizations?|categories?)\s+are\s+present\b",
+                query,
+            )
+        )
+
         # --------------------------------------------------------
         # Complex combinations.
         # --------------------------------------------------------
@@ -686,6 +696,9 @@ class AnalyticsAgent(BaseAgent):
             return True
 
         if has_top_n:
+            return True
+
+        if has_value_listing:
             return True
 
         if has_which_group_comparison and has_calculation:
@@ -754,6 +767,7 @@ class AnalyticsAgent(BaseAgent):
             "sort",
             "count",
             "info",
+            "list_values",
         }
 
         if operation not in supported_operations:
@@ -1249,6 +1263,66 @@ class AnalyticsAgent(BaseAgent):
                     f"{len(filtered_dataframe)} rows "
                     f"and {len(columns)} columns."
                 ),
+            }
+
+        # ========================================================
+        # LIST VALUES
+        # ========================================================
+
+        if operation == "list_values":
+
+            if not plan.value_column:
+
+                raise ValueError(
+                    "Listing values requires a value column."
+                )
+
+            column = plan.value_column
+
+            values = (
+                filtered_dataframe[column]
+                .dropna()
+            )
+
+            values = values[
+                values.astype(str).str.strip() != ""
+            ].drop_duplicates()
+
+            if plan.limit is not None:
+
+                if plan.limit <= 0:
+
+                    raise ValueError(
+                        "Limit must be greater than zero."
+                    )
+
+                values = values.head(plan.limit)
+
+            display_values = [
+                str(value)
+                for value in values.tolist()
+            ]
+
+            if display_values:
+
+                answer = (
+                    f"The values in {column} are: "
+                    + ", ".join(display_values)
+                    + "."
+                )
+
+            else:
+
+                answer = (
+                    f"No non-empty values were found in {column}."
+                )
+
+            return {
+                "status": "completed",
+                "operation": "list_values",
+                "column": column,
+                "values": display_values,
+                "answer": answer,
             }
 
         raise ValueError(

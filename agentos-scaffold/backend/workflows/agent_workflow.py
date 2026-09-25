@@ -43,10 +43,42 @@ from agents.research_agent import ResearchAgent
 from agents.document_agent import document_agent
 from agents.supervisor_agent import SupervisorAgent
 
-from schemas.agent_state import AgentState
+from schemas.agent_state import AgentState, WorkflowTraceEvent
 
 
 logger = logging.getLogger(__name__)
+
+
+def _record_workflow_trace(
+    state: AgentState,
+    agent: str,
+    output: dict | None = None,
+) -> None:
+    """Record node execution without affecting workflow behavior."""
+
+    try:
+        if any(event.agent == agent for event in state.workflow_trace):
+            return
+
+        status = "failed" if (
+            state.status == "failed"
+            or (
+                output
+                and output.get("status") == "failed"
+            )
+        ) else "completed"
+
+        state.workflow_trace.append(
+            WorkflowTraceEvent(
+                agent=agent,
+                status=status,
+            )
+        )
+    except Exception:
+        logger.exception(
+            "Failed to record workflow trace for %s.",
+            agent,
+        )
 
 
 # ================================================================
@@ -78,7 +110,9 @@ def supervisor_node(
         "LangGraph: Supervisor node started."
     )
 
-    return supervisor_agent.execute(state)
+    state = supervisor_agent.execute(state)
+    _record_workflow_trace(state, "supervisor")
+    return state
 
 
 # ================================================================
@@ -96,7 +130,9 @@ def chat_node(
         "LangGraph: Chat node started."
     )
 
-    return chat_agent.execute(state)
+    state = chat_agent.execute(state)
+    _record_workflow_trace(state, "chat", state.chat_output)
+    return state
 
 
 # ================================================================
@@ -114,7 +150,9 @@ def rag_node(
         "LangGraph: RAG node started."
     )
 
-    return rag_agent.execute(state)
+    state = rag_agent.execute(state)
+    _record_workflow_trace(state, "rag", state.rag_output)
+    return state
 
 
 # ================================================================
@@ -132,7 +170,9 @@ def analytics_node(
         "LangGraph: Analytics node started."
     )
 
-    return analytics_agent.execute(state)
+    state = analytics_agent.execute(state)
+    _record_workflow_trace(state, "analytics", state.analytics_output)
+    return state
 
 
 # ================================================================
@@ -150,7 +190,9 @@ def research_node(
         "LangGraph: Research node started."
     )
 
-    return research_agent.execute(state)
+    state = research_agent.execute(state)
+    _record_workflow_trace(state, "research", state.research_output)
+    return state
 
 
 # ================================================================
@@ -171,7 +213,9 @@ def document_node(
         "LangGraph: Document node started."
     )
 
-    return document_agent.execute(state)
+    state = document_agent.execute(state)
+    _record_workflow_trace(state, "document", state.document_output)
+    return state
 
 
 # ================================================================

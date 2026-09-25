@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Check,
   LoaderCircle,
   Paperclip,
+  Plus,
   Send,
   Sparkles,
   X,
@@ -16,28 +18,26 @@ import WorkflowVisualization from "../components/workflow/WorkflowVisualization.
 
 const supportedFileTypes = ".pdf,.docx,.txt,.csv,.xls,.xlsx";
 
-function formatSourceCitations(content, attachments) {
-  const withoutContextCitations = content.replace(/【Context\s+\d+】|\[Context\s+\d+\]/gi, "");
+function sanitizeRagCitations(content) {
+  const uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
 
-  return withoutContextCitations.replace(/\[([^\]]+)\]/g, (citation, metadata) => {
-    const source = metadata.split(",")[0].trim();
-    const attachment = attachments.find(
-      (item) =>
-        item.status === "ready" &&
-        item.fileId &&
-        (source === item.fileId || source.startsWith(`${item.fileId}.`))
+  return content
+    .replace(/【Context\s+\d+】|\[Context\s+\d+\]/gi, "")
+    .replace(new RegExp(`\\[${uuid}_[^\\]]+\\]`, "gi"), "")
+    .replace(
+      new RegExp(
+        `\\[${uuid}\\.[a-z0-9]+,\\s*(?:Page\\s+\\d+,\\s*)?Chunk(?:\\s+ID)?\\s*:?[^\\]]+\\]`,
+        "gi"
+      ),
+      ""
+    )
+    .replace(
+      new RegExp(
+        `【${uuid}\\.[a-z0-9]+,\\s*(?:Page\\s+\\d+,\\s*)?Chunk(?:\\s+ID)?\\s*:?[^】]+】`,
+        "gi"
+      ),
+      ""
     );
-    const generatedFilename = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.[a-z0-9]+$/i.test(
-      source
-    );
-    const hasRetrievalMetadata = /\b(?:Page\s+\d+|Chunk(?:\s+ID)?\s*:?)\b/i.test(metadata);
-
-    if (!attachment && !(generatedFilename && hasRetrievalMetadata)) {
-      return citation;
-    }
-
-    return "";
-  });
 }
 
 const markdownComponents = {
@@ -108,11 +108,47 @@ const markdownComponents = {
 };
 
 export default function Workspace() {
+  const location = useLocation();
+
+  return <WorkspaceContent key={location.key} />;
+}
+
+function WorkspaceContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [restoringConversation, setRestoringConversation] = useState(false);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const { messages, loading, error, workflowTrace, sendMessage } = useChat();
+  const {
+    messages,
+    loading,
+    error,
+    workflowTrace,
+    sendMessage,
+    loadConversation,
+  } = useChat();
+  const selectedConversationId = new URLSearchParams(location.search).get("conversation_id");
+
+  useEffect(() => {
+    if (!selectedConversationId) {
+      return;
+    }
+
+    let isCurrent = true;
+    setRestoringConversation(true);
+
+    loadConversation(selectedConversationId).finally(() => {
+      if (isCurrent) {
+        setRestoringConversation(false);
+      }
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedConversationId, loadConversation]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -193,15 +229,29 @@ export default function Workspace() {
     }
   }
 
+  function handleNewChat() {
+    navigate("/workspace");
+  }
+
   return (
     <div className="flex min-h-full flex-col gap-5 lg:grid lg:min-h-0 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
       <section className="flex min-h-[38rem] flex-col border border-white/[0.08] bg-[#0b121d]/75 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.14)] sm:p-7">
         <div>
-          <div className="flex items-center gap-2.5">
-            <Sparkles size={17} className="text-cyan-200/75" strokeWidth={1.6} />
-            <h1 className="text-sm font-medium tracking-wide text-white/90">
-              AI Workspace
-            </h1>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <Sparkles size={17} className="text-cyan-200/75" strokeWidth={1.6} />
+              <h1 className="text-sm font-medium tracking-wide text-white/90">
+                AI Workspace
+              </h1>
+            </div>
+            <button
+              type="button"
+              onClick={handleNewChat}
+              className="flex items-center gap-1.5 text-xs text-white/40 transition-colors hover:text-cyan-100/80"
+            >
+              <Plus size={14} strokeWidth={1.7} />
+              New Chat
+            </button>
           </div>
           <p className="mt-2 text-xs tracking-wide text-white/40">
             Coordinate tasks across your AgentOS intelligence layer.
@@ -209,7 +259,12 @@ export default function Workspace() {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-1 py-8 sm:px-3 sm:py-10">
-          {messages.length === 0 ? (
+          {restoringConversation && messages.length === 0 ? (
+            <div className="flex h-full items-center justify-center gap-3 text-sm text-cyan-100/55">
+              <LoaderCircle size={17} className="animate-spin" strokeWidth={1.6} />
+              Restoring conversation...
+            </div>
+          ) : messages.length === 0 ? (
             <div className="flex h-full items-center justify-center px-4 text-center">
               <div className="max-w-md">
                 <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center border border-cyan-200/20 bg-cyan-200/[0.06] text-cyan-100/80 shadow-[0_0_24px_rgba(103,232,249,0.08)]">
@@ -239,7 +294,7 @@ export default function Workspace() {
                   >
                     {message.role === "assistant" ? (
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                        {formatSourceCitations(message.content, attachments)}
+                        {sanitizeRagCitations(message.content)}
                       </ReactMarkdown>
                     ) : (
                       message.content
@@ -250,7 +305,7 @@ export default function Workspace() {
               {loading && (
                 <div className="flex items-center gap-2 text-xs text-cyan-100/55">
                   <LoaderCircle size={14} className="animate-spin" strokeWidth={1.7} />
-                  AgentOS is processing...
+                  {restoringConversation ? "Restoring conversation..." : "AgentOS is processing..."}
                 </div>
               )}
               {error && (

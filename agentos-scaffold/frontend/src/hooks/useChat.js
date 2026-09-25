@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { sendChatMessage } from "../services/chatService.js";
+import { getConversation, sendChatMessage } from "../services/chatService.js";
 
 export function useChat() {
   const [messages, setMessages] = useState([]);
@@ -7,6 +7,35 @@ export function useChat() {
   const [conversationId, setConversationId] = useState(null);
   const [error, setError] = useState(null);
   const [workflowTrace, setWorkflowTrace] = useState([]);
+
+  const loadConversation = useCallback(async (selectedConversationId) => {
+    if (!selectedConversationId) {
+      return;
+    }
+
+    setError(null);
+    setWorkflowTrace([]);
+    setLoading(true);
+
+    try {
+      const response = await getConversation(selectedConversationId);
+      setMessages(
+        Array.isArray(response?.messages)
+          ? response.messages.map(({ role, content }) => ({ role, content }))
+          : []
+      );
+      setConversationId(response?.conversation_id || selectedConversationId);
+    } catch (requestError) {
+      const detail = requestError?.response?.data?.detail;
+      setError(
+        typeof detail === "string"
+          ? detail
+          : "AgentOS could not load the conversation. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const sendMessage = useCallback(async (query, uploadedFileIds = []) => {
     const trimmedQuery = query.trim();
@@ -45,5 +74,13 @@ export function useChat() {
     }
   }, [conversationId]);
 
-  return { messages, loading, conversationId, error, workflowTrace, sendMessage };
+  return {
+    messages,
+    loading,
+    conversationId,
+    error,
+    workflowTrace,
+    sendMessage,
+    loadConversation,
+  };
 }

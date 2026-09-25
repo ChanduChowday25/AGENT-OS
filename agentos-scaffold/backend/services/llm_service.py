@@ -114,7 +114,12 @@ class LLMService:
 
                 "temperature": 0.2,
 
-                "max_tokens": 500,
+                # GPT-OSS models use completion tokens for both
+                # reasoning and final output.
+                "max_completion_tokens": 1024,
+
+                # Keep reasoning lightweight for AgentOS tasks.
+                "reasoning_effort": "low",
             }
 
             # ====================================================
@@ -158,15 +163,22 @@ class LLMService:
             )
 
             # ====================================================
+            # Validate response structure
+            # ====================================================
+
+            if not response.choices:
+
+                raise RuntimeError(
+                    "LLM returned no choices."
+                )
+
+            message = response.choices[0].message
+
+            # ====================================================
             # Extract response
             # ====================================================
 
-            content = (
-                response
-                .choices[0]
-                .message
-                .content
-            )
+            content = message.content
 
             if not content:
 

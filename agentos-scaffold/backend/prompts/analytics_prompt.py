@@ -34,6 +34,8 @@ IMPORTANT RULES:
 13. If the user requests a specific number of results, use "limit".
 14. Do not perform the calculation yourself.
 15. Do not include explanations or markdown.
+16. For list_values, select the actual categorical or text column name from
+	the supplied dataset schema. Do not invent column names.
 
 SUPPORTED OPERATIONS:
 
@@ -43,6 +45,17 @@ SUPPORTED OPERATIONS:
 - sort
 - count
 - info
+- list_values
+
+Use list_values when the user asks to list or show the distinct or present
+values of a categorical or text column.
+
+Examples:
+
+- "Tell me the NGO names"
+- "List the districts"
+- "What organizations are present?"
+- "Show the different categories"
 
 SUPPORTED AGGREGATIONS:
 

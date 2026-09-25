@@ -12,10 +12,13 @@ Responsibilities:
 
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from database.connection import get_db
 from schemas.chat import ChatRequest, ChatResponse
 from schemas.agent_state import AgentState
+from services.memory_service import MemoryService
 from workflows.agent_workflow import get_compiled_workflow
 
 
@@ -32,6 +35,7 @@ router = APIRouter()
 )
 async def chat(
     request: ChatRequest,
+    db: Session = Depends(get_db),
 ):
     """
     Execute a user request through the AgentOS workflow.
@@ -50,6 +54,8 @@ async def chat(
 
     try:
 
+        memory_service = MemoryService(db)
+
         # ========================================================
         # Conversation ID
         # ========================================================
@@ -57,6 +63,21 @@ async def chat(
         conversation_id = (
             request.conversation_id
             or str(uuid.uuid4())
+        )
+
+        if request.conversation_id:
+            if memory_service.get_conversation(conversation_id) is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Conversation not found.",
+                )
+        else:
+            memory_service.create_conversation_if_missing(conversation_id)
+
+        memory_service.save_message(
+            conversation_id,
+            "user",
+            request.query.strip(),
         )
 
         # ========================================================
@@ -120,6 +141,13 @@ async def chat(
             final_response = (
                 "The workflow completed without "
                 "producing a response."
+            )
+
+        if final_state.final_response:
+            memory_service.save_message(
+                conversation_id,
+                "assistant",
+                str(final_state.final_response),
             )
 
         # ========================================================

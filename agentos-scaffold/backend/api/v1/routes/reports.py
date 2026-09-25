@@ -9,6 +9,7 @@ from schemas.report import ReportListResponse
 from services.report_service import (
     get_reports,
     get_report_by_id,
+    delete_report,
 )
 
 
@@ -91,3 +92,51 @@ async def download_report(
         media_type=media_type,
         filename=report["filename"],
     )
+
+
+# ================================================================
+# Delete Report
+# ================================================================
+
+@router.delete(
+    "/reports/{report_id}",
+    tags=["reports"],
+)
+async def delete_report_route(
+    report_id: str,
+):
+    """
+    Delete a generated report and its physical PDF/DOCX file.
+    """
+
+    try:
+
+        deleted = delete_report(
+            report_id
+        )
+
+    except RuntimeError as exc:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc),
+        ) from exc
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to delete the report.",
+        )
+
+    if not deleted:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Report not found.",
+        )
+
+    return {
+        "report_id": report_id,
+        "message": "Report deleted successfully.",
+    }
