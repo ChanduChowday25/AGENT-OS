@@ -4,533 +4,340 @@
 
 Enterprise Multi-Agent AI Operating System
 
-A unified AI workspace that turns natural-language requests into intelligent, observable workflows.
+A unified AI workspace for intelligent conversation, document analysis, research, data analytics, and automated report generation.
 
-<br/>
+<br>
 
-<p>
-  <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=111827" alt="React">
-  <img src="https://img.shields.io/badge/LangGraph-Orchestration-111827?style=for-the-badge" alt="LangGraph">
-  <img src="https://img.shields.io/badge/ChromaDB-RAG-FF6B35?style=for-the-badge" alt="ChromaDB">
-  <img src="https://img.shields.io/badge/SQLite-Persistence-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
-</p>
 
-<br/>
 
-<!-- Add your final hero GIF here -->
 
-<img src="docs/assets/agentos-demo.gif" width="900" alt="AgentOS demo">
 
-<br/><br/>
 
-Ask · Analyze · Research · Retrieve · Generate
+
+
+<br><br>
+
+Ask anything · Search documents · Research · Analyze data · Generate reports
 
 </div>
 
-✦ Introduction
+Introduction
 
-AgentOS is a multi-agent AI operating system built to bring several AI capabilities into one intelligent workspace.
+AgentOS is a multi-agent AI operating system that brings different AI capabilities into one workspace.
 
-Instead of treating every request as a simple:
+Instead of sending every request directly to one large language-model prompt, AgentOS uses a Supervisor Agent to understand the user's intent and route the request to the appropriate specialized agent.
 
-User → Prompt → LLM → Answer
+The current system includes:
 
-AgentOS uses a Supervisor Agent to understand the user's intent, create an execution plan, route the request to the appropriate specialized agent, and return the result through a visual workspace.
+Supervisor Agent — intent understanding and workflow routing
 
-The system currently brings together:
+Chat Agent — general conversational requests
 
-💬 General AI conversations
+RAG Agent — document-grounded question answering
 
-📚 Document-grounded RAG
+Research Agent — research-oriented tasks
 
-🔎 Research workflows
+Analytics Agent — natural-language data analysis
 
-📊 Natural-language data analytics
+Document Agent — professional PDF/DOCX generation
 
-📄 AI-powered PDF/DOCX report generation
+The application also includes conversation persistence, file uploads, workflow visualization, report management, and a React-based AI workspace.
 
-💾 Persistent conversations
+The idea behind AgentOS:
+Turn a natural-language request into a controlled, observable AI workflow.
 
-👁️ Workflow execution visualization
+What Problem Does It Solve?
 
-The goal was not to build several disconnected AI demos.
+A traditional AI application often looks like:
 
-The goal was to build one coherent system in which specialized AI capabilities work together through a controlled architecture.
+User
+  ↓
+One Prompt
+  ↓
+LLM
+  ↓
+Response
 
-01 · The Problem
-
-Modern AI applications often start as a single chatbot.
-
-That works well for simple questions, but becomes difficult when the application needs to handle very different types of work.
+That approach becomes difficult when an application needs to perform very different types of work.
 
 For example:
 
-"Explain dependency injection."
+"Explain REST APIs."
 
-is fundamentally different from:
+requires general conversation.
 
-"Search my uploaded resume and tell me about my projects."
+"Find the projects mentioned in my resume."
 
-which is different from:
+requires document retrieval.
 
-"Analyze this dataset and find the average sales by region."
+"Find the average sales for each region."
 
-and different again from:
+requires deterministic data processing.
 
-"Use the information you found and generate a professional report."
+"Create a professional report from this information."
 
-Putting all of these responsibilities into one large prompt creates a system that becomes harder to reason about, maintain, test, and extend.
+requires document generation.
 
-AgentOS addresses this by separating responsibilities.
+These are different responsibilities.
 
-                    USER REQUEST
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │   SUPERVISOR  │
-                 │     AGENT     │
-                 └───────┬───────┘
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-        RAG          ANALYTICS       RESEARCH
-          │              │              │
-          └──────────────┼──────────────┘
-                         ▼
-                    DOCUMENT
-                       AGENT
-                         │
-                         ▼
-                    PDF / DOCX
+AgentOS separates them into specialized agents and places a Supervisor in control of the workflow.
+
+                       User Request
+                            │
+                            ▼
+                    ┌───────────────┐
+                    │   Supervisor  │
+                    │     Agent     │
+                    └───────┬───────┘
+                            │
+             ┌──────────────┼──────────────┐
+             │              │              │
+             ▼              ▼              ▼
+           Chat            RAG          Research
+             │              │              │
+             │              │              │
+             │              └──────┐       │
+             │                     │       │
+             │                     ▼       │
+             │                Document     │
+             │                  Agent      │
+             │                     ▲       │
+             │                     │       │
+             └─────────────────────┴───────┘
 
 The user describes what they want.
 
-The system decides how it should be executed.
+The Supervisor determines which capability should execute it.
 
-02 · What I Built
+What I Built
 
-AgentOS is built around six focused agents.
+1. Centralized Multi-Agent Orchestration
 
-Agent
+The Supervisor controls the execution plan.
 
-Responsibility
+Supported workflows include:
 
-🧠 Supervisor Agent
+Chat
+RAG
+Research
+Analytics
 
-Understands intent, creates execution plans, and controls routing
+RAG       → Document
+Research  → Document
+Analytics → Document
 
-💬 Chat Agent
+Specialized agents do not arbitrarily call one another. The workflow layer keeps orchestration centralized.
 
-Handles general conversational requests
+2. Document Intelligence with RAG
 
-📚 RAG Agent
+Users can upload documents and ask questions about their content.
 
-Retrieves information from uploaded documents and generates grounded answers
+The RAG workflow performs:
 
-🔎 Research Agent
+Uploaded File
+     ↓
+Document Ingestion
+     ↓
+Parsing / Chunking
+     ↓
+Embeddings
+     ↓
+ChromaDB
+     ↓
+Hybrid Retrieval
+     ↓
+Relevance Filtering
+     ↓
+Context Construction
+     ↓
+LLM
+     ↓
+Grounded Answer
 
-Handles research-oriented requests
+The retrieved information can also become the source for a later document-generation workflow.
 
-📊 Analytics Agent
+3. Natural-Language Data Analytics
 
-Converts natural-language analysis requests into executable data analysis
+The Analytics Agent uses a hybrid approach.
 
-📄 Document Agent
+The LLM understands the request and creates an analysis plan, while Pandas performs the actual data operations.
 
-Converts agent outputs into professional PDF/DOCX reports
+User Query
+    ↓
+Analysis Planning
+    ↓
+Structured Analysis Plan
+    ↓
+Pandas
+    ↓
+Filtering / Grouping / Aggregation
+    ↓
+Structured Result
+    ↓
+LLM Explanation
+    ↓
+Final Answer
 
-The important design choice
+This keeps numerical processing deterministic instead of asking the LLM to perform calculations itself.
 
-The specialized agents are not randomly chained together.
+4. Research
 
-The Supervisor remains the orchestration layer.
+Research requests are handled separately from document-grounded RAG.
+
+Research Request
+      ↓
+Supervisor
+      ↓
+Research Agent
+      ↓
+Research / Synthesis
+      ↓
+Final Response
+
+RAG answers questions from uploaded material, while Research handles research-oriented requests.
+
+5. AI-Powered Report Generation
+
+The Document Agent converts useful output from other agents into professional documents.
 
 For example:
 
-User
- │
- ▼
+User Request
+     ↓
 Supervisor
- │
- ├── RAG
- │
- └── Document
-
-or:
-
-User
- │
- ▼
-Supervisor
- │
- ├── Analytics
- │
- └── Document
-
-This keeps the architecture understandable and prevents the system from becoming a collection of tightly coupled agent-to-agent dependencies.
-
-03 · Architecture
-
-◈ System Overview
-
-flowchart TB
-
-    U(["👤 User"])
-
-    UI["🖥️ AgentOS Workspace<br/>React + Vite"]
-
-    API["⚡ FastAPI<br/>REST API"]
-
-    S["🧠 Supervisor Agent<br/>Intent → Execution Plan"]
-
-    C["💬 Chat Agent"]
-    R["📚 RAG Agent"]
-    RS["🔎 Research Agent"]
-    A["📊 Analytics Agent"]
-    D["📄 Document Agent"]
-
-    V["🗃️ ChromaDB<br/>Vector Retrieval"]
-    P["🐼 Pandas<br/>Data Processing"]
-
-    M["💾 SQLite<br/>Conversations + Reports"]
-
-    O["✨ Final Response"]
-    F["📑 PDF / DOCX"]
-
-    U --> UI
-    UI --> API
-    API --> S
-
-    S --> C
-    S --> R
-    S --> RS
-    S --> A
-
-    R --> V
-    A --> P
-
-    R --> D
-    RS --> D
-    A --> D
-
-    D --> F
-    D --> M
-
-    C --> O
-    R --> O
-    RS --> O
-    A --> O
-    F --> O
-
-    classDef user fill:#111827,stroke:#67e8f9,color:#f9fafb
-    classDef control fill:#172554,stroke:#60a5fa,color:#f9fafb
-    classDef agent fill:#1e293b,stroke:#a5b4fc,color:#f9fafb
-    classDef storage fill:#052e2b,stroke:#2dd4bf,color:#f9fafb
-    classDef output fill:#3f1d38,stroke:#f0abfc,color:#f9fafb
-
-    class U user
-    class S control
-    class C,R,RS,A,D agent
-    class V,P,M storage
-    class O,F output
-
-Architecture flow
-
-User
-  ↓
-React Workspace
-  ↓
-FastAPI
-  ↓
-Supervisor
-  ↓
-Specialized Agent
-  ↓
-Agent-specific processing
-  ↓
-Shared workflow state
-  ↓
-Final response / document
-
-The architecture deliberately separates:
-
-presentation → API → orchestration → specialized intelligence → storage/output
-
-04 · How the Agents Work Together
-
-🧠 Supervisor
-
-The Supervisor is the control layer.
-
-It interprets the user's request and determines the execution plan.
-
-Examples:
-
-"What is Python?"
-        ↓
-Supervisor
-        ↓
-Chat
-
-"What does my resume say about my projects?"
-        ↓
-Supervisor
-        ↓
-RAG
-
-"Analyze this dataset."
-        ↓
-Supervisor
-        ↓
-Analytics
-
-"Create a report from the information in my resume."
-        ↓
-Supervisor
-        ↓
-RAG → Document
-
-The Supervisor does not perform every task itself.
-
-It decides which specialized capability should perform the task.
-
-05 · RAG Pipeline
-
-AgentOS includes a document-grounded retrieval pipeline.
-
-┌──────────────────┐
-│  Uploaded File   │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│     Parsing      │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│     Chunking     │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│    Embeddings    │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│     ChromaDB     │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│ Hybrid Retrieval │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│  Relevance Gate  │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│ Relevant Context │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│       LLM        │
-└────────┬─────────┘
-         ↓
-   Grounded Answer
-
-This allows users to ask questions about their uploaded material without treating the LLM as the source of truth.
-
-06 · Analytics Pipeline
-
-Analytics uses a different principle:
-
-The LLM understands the request. Deterministic code performs the calculation.
-
-Natural Language Query
-          ↓
-   Analysis Planning
-          ↓
-    Analysis Plan
-          ↓
-        Pandas
-          ↓
- ┌────────┼────────┐
- ↓        ↓        ↓
-Filter   Group   Aggregate
- └────────┼────────┘
-          ↓
-   Structured Result
-          ↓
-    LLM Explanation
-          ↓
-     Final Answer
-
-This avoids unnecessarily sending entire datasets through an LLM and allows actual calculations to be performed by Pandas.
-
-07 · Research Workflow
-
-Research is intentionally separated from document-grounded RAG.
-
-User Research Request
-          ↓
-      Supervisor
-          ↓
-    Research Agent
-          ↓
- Research / Synthesis
-          ↓
-     Final Response
-
-The distinction is:
-
-RAG
-→ "Find information in my uploaded content."
-
-Research
-→ "Research and synthesize information about this topic."
-
-08 · Document Generation
-
-One of the key capabilities of AgentOS is converting existing agent intelligence into professional documents.
-
-flowchart LR
-
-    U["User Request"]
-
-    S["Supervisor"]
-
-    R["📚 RAG"]
-    A["📊 Analytics"]
-    RS["🔎 Research"]
-
-    D["📄 Document Agent"]
-
-    PDF["PDF"]
-    DOCX["DOCX"]
-
-    U --> S
-
-    S --> R
-    S --> A
-    S --> RS
-
-    R --> D
-    A --> D
-    RS --> D
-
-    D --> PDF
-    D --> DOCX
-
-The Document Agent receives useful output from the source agent and transforms it into a structured report.
-
-Report lifecycle
-
-Agent Output
+     ↓
+RAG / Research / Analytics
      ↓
 Document Agent
      ↓
 Document Service
      ↓
- ┌─────────┐
- │ PDF     │
- │ DOCX    │
- └────┬────┘
-      ↓
-SQLite Metadata
-      ↓
-Reports UI
-      ↓
-Download / Delete
+PDF / DOCX
+     ↓
+Reports
 
-09 · Conversation Memory
+Generated reports are persisted so they can be viewed, downloaded, and deleted from the Reports interface.
 
-AgentOS persists conversations using SQLite.
+6. Conversation Memory
 
-Conversation
-     │
-     ├── User Message
-     ├── Assistant Message
-     ├── User Message
-     └── Assistant Message
+AgentOS stores conversations in SQLite.
 
-The workspace allows users to:
+Users can:
 
-start a new conversation
+start a new chat
 
 view previous conversations
 
 restore a conversation
 
-continue interacting
+continue the conversation
 
 delete a conversation
 
-Memory operations are isolated inside the MemoryService, keeping persistence separate from agent reasoning.
+Memory operations are isolated inside the MemoryService.
 
-10 · Workflow Visualization
+7. Workflow Visualization
 
-AgentOS exposes the execution path through a workflow trace.
+The backend records which agents participate in an execution.
 
 For example:
 
-             ┌─────────────┐
-             │ Supervisor  │
-             └──────┬──────┘
-                    │
-                    ▼
-             ┌─────────────┐
-             │     RAG     │
-             └──────┬──────┘
-                    │
-                    ▼
-             ┌─────────────┐
-             │  Document   │
-             └─────────────┘
+Supervisor
+    │
+    ▼
+   RAG
+    │
+    ▼
+Document
 
-The frontend uses this information to highlight the agents involved in the current execution.
+The frontend uses the workflow trace to highlight the participating agents in the Agent Network.
 
-This gives the user visibility into:
+This makes the multi-agent execution visible instead of hiding everything behind a single chatbot response.
 
-Which agents ran?
-        ↓
-What was the execution path?
-        ↓
-What kind of workflow was performed?
+Architecture
 
-11 · What AgentOS Actually Does
+High-Level Architecture
 
-💬 Ask Anything
+flowchart TB
 
-Ask a general question and AgentOS routes it to the Chat Agent.
+    USER["👤 User"]
 
-📚 Search Documents
+    FRONTEND["🖥️ React Workspace<br/>Dashboard · Workspace · Analytics · Reports"]
 
-Upload a document and ask questions about its contents using the RAG pipeline.
+    API["⚡ FastAPI<br/>REST API"]
 
-🔎 Research Topics
+    SUPERVISOR["🧠 Supervisor Agent<br/>Intent → Execution Plan"]
 
-Send research-oriented requests to the dedicated Research Agent.
+    CHAT["💬 Chat Agent"]
+    RAG["📚 RAG Agent"]
+    RESEARCH["🔎 Research Agent"]
+    ANALYTICS["📊 Analytics Agent"]
+    DOCUMENT["📄 Document Agent"]
 
-📊 Analyze Data
+    CHROMA["🗃️ ChromaDB<br/>Document Retrieval"]
+    PANDAS["🐼 Pandas<br/>Data Processing"]
 
-Provide structured data and ask questions in natural language.
+    SQLITE["💾 SQLite<br/>Conversations + Reports"]
 
-📄 Generate Reports
+    OUTPUT["✨ Final Response"]
+    REPORTS["📑 PDF / DOCX"]
 
-Turn RAG, Research, or Analytics outputs into professional PDF/DOCX reports.
+    USER --> FRONTEND
+    FRONTEND --> API
+    API --> SUPERVISOR
 
-💾 Continue Conversations
+    SUPERVISOR --> CHAT
+    SUPERVISOR --> RAG
+    SUPERVISOR --> RESEARCH
+    SUPERVISOR --> ANALYTICS
 
-Return to previous conversations through the persistent workspace.
+    RAG --> CHROMA
+    ANALYTICS --> PANDAS
 
-👁️ Observe the Workflow
+    RAG --> DOCUMENT
+    RESEARCH --> DOCUMENT
+    ANALYTICS --> DOCUMENT
 
-See which agents participated in the current execution.
+    CHAT --> OUTPUT
+    RAG --> OUTPUT
+    RESEARCH --> OUTPUT
+    ANALYTICS --> OUTPUT
 
-12 · Project Structure
+    DOCUMENT --> REPORTS
+    DOCUMENT --> SQLITE
+
+    FRONTEND -. conversations .-> SQLITE
+
+The architecture in one line
+
+React → FastAPI → Supervisor → Specialized Agent(s) → Result / Document
+
+Shared AgentState
+
+Agents communicate through a shared workflow state rather than being tightly coupled to one another.
+
+The state carries information such as:
+
+query
+uploaded_files
+conversation_history
+execution_plan
+
+rag_output
+research_output
+analytics_output
+document_output
+
+final_response
+workflow_trace
+
+This gives the workflow a consistent contract between the Supervisor, specialized agents, and final response aggregation.
+
+Project Structure
+
+The repository is organized around the separation between the AI backend and the React workspace.
 
 Agent-OS/
-│
 └── agentos-scaffold/
     │
     ├── backend/
@@ -543,250 +350,105 @@ Agent-OS/
     │   │   ├── prompts/
     │   │   ├── schemas/
     │   │   ├── services/
-    │   │   └── workflows/
+    │   │   ├── workflows/
+    │   │   ├── main.py
+    │   │   └── requirements.txt
     │   │
-    │   ├── main.py
-    │   └── requirements.txt
+    │   └── .env
     │
-    ├── frontend/
-    │   │
-    │   ├── public/
-    │   ├── src/
-    │   │   ├── components/
-    │   │   ├── hooks/
-    │   │   ├── pages/
-    │   │   └── services/
-    │   │
-    │   └── package.json
-    │
-    ├── docs/
-    │   ├── assets/
-    │   │   ├── agentos-demo.gif
-    │   │   ├── rag-workflow.gif
-    │   │   └── report-generation.gif
-    │   │
-    │   └── screenshots/
-    │       ├── dashboard.png
-    │       ├── workspace.png
-    │       ├── analytics.png
-    │       └── reports.png
-    │
-    └── README.md
-
-Backend organization
-
-agents/
-    Agent behavior and orchestration logic
-
-api/
-    REST endpoints
-
-database/
-    Database connections and vector-store integration
-
-models/
-    Persistence models
-
-prompts/
-    Agent-specific LLM prompts
-
-schemas/
-    Shared state and API contracts
-
-services/
-    Reusable application services
-
-workflows/
-    LangGraph execution graph
-
-Frontend organization
-
-components/
-    Reusable UI components
-
-hooks/
-    Frontend state and interaction logic
-
-pages/
-    Main application screens
-
-services/
-    Backend API communication
-
-13 · Run AgentOS on Your Computer
-
-Prerequisites
-
-Install:
-
-Python 3.x
-
-Node.js + npm
-
-Git
-
-A Groq API key
-
-Verify the installations:
-
-python --version
-node --version
-npm --version
-git --version
-
-Step 1 — Clone the repository
-
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-
-Move into the project:
-
-cd Agent-OS/agentos-scaffold
-
-Step 2 — Configure the backend
-
-cd backend
-
-Create a virtual environment:
-
-python -m venv .venv
-
-Windows
-
-.venv\Scripts\activate
-
-macOS / Linux
-
-source .venv/bin/activate
-
-Install Python dependencies:
-
-pip install -r requirements.txt
-
-Step 3 — Configure environment variables
-
-Create:
-
-backend/.env
-
-Add the required API configuration used by the application, including your Groq API key.
-
-Example:
-
-GROQ_API_KEY=your_groq_api_key
-
-Keep .env private. Never commit API keys to GitHub.
-
-Step 4 — Start the backend
-
-From the backend directory:
-
-uvicorn main:app --reload --port 8000
-
-The API will be available at:
-
-http://localhost:8000
-
-FastAPI Swagger documentation:
-
-http://localhost:8000/docs
-
-Health check:
-
-http://localhost:8000/api/v1/health
-
-Step 5 — Start the frontend
-
-Open a second terminal.
-
-Move to:
-
-cd Agent-OS/agentos-scaffold/frontend
-
-Install dependencies:
-
-npm install
-
-Start the development server:
-
-npm run dev
-
-The frontend will normally be available at:
-
-http://localhost:5173
-
-Step 6 — Open AgentOS
-
-Open:
-
-http://localhost:5173
-
-You can then:
-
-Enter Workspace
-      ↓
-Ask a question
-      ↓
-Upload a document
-      ↓
-Search your document
-      ↓
-Analyze data
-      ↓
-Generate a report
-      ↓
-View the workflow
-      ↓
-Download / manage reports
-
-14 · Screenshots
-
-The repository can showcase the actual product here.
-
-Replace the placeholder files with your final screenshots.
-
-<div align="center">
-
-Dashboard
-
-<img src="docs/screenshots/dashboard.png" width="850" alt="AgentOS Dashboard">
-
-<br/><br/>
-
-Workspace
-
-<img src="docs/screenshots/workspace.png" width="850" alt="AgentOS Workspace">
-
-<br/><br/>
-
-Analytics
-
-<img src="docs/screenshots/analytics.png" width="850" alt="AgentOS Analytics">
-
-<br/><br/>
-
-Reports
-
-<img src="docs/screenshots/reports.png" width="850" alt="AgentOS Reports">
-
-</div>
-
-15 · Product Demonstrations
-
-AgentOS Demo
-
-<img src="docs/assets/agentos-demo.gif" width="900" alt="AgentOS demonstration">
-
-RAG Workflow
-
-<img src="docs/assets/rag-workflow.gif" width="900" alt="AgentOS RAG workflow">
-
-Report Generation
-
-<img src="docs/assets/report-generation.gif" width="900" alt="AgentOS report generation">
-
-16 · Technology
-
-<div align="center">
+    └── frontend/
+        │
+        ├── public/
+        ├── src/
+        │   ├── components/
+        │   ├── hooks/
+        │   ├── pages/
+        │   └── services/
+        │
+        └── package.json
+
+Backend
+
+agents/       → Agent implementations
+api/          → FastAPI routes
+config/       → Application configuration
+database/     → Database and vector-store connections
+models/       → SQLAlchemy persistence models
+prompts/      → Agent-specific prompts
+schemas/      → Pydantic schemas and AgentState
+services/     → Reusable application services
+workflows/    → LangGraph orchestration
+main.py       → FastAPI application entry point
+
+Frontend
+
+components/   → Reusable UI components
+hooks/        → Frontend state and workflow logic
+pages/        → Dashboard, Workspace, Analytics, Reports
+services/     → Backend API communication
+public/       → Static frontend assets
+
+How AgentOS Works in Practice
+
+Example 1 — General Question
+
+"What is dependency injection?"
+            ↓
+        Supervisor
+            ↓
+        Chat Agent
+            ↓
+        Final Answer
+
+Example 2 — Ask About an Uploaded Document
+
+"What projects are mentioned in my resume?"
+                    ↓
+                Supervisor
+                    ↓
+                  RAG
+                    ↓
+                ChromaDB
+                    ↓
+            Relevant Context
+                    ↓
+                   LLM
+                    ↓
+             Grounded Answer
+
+Example 3 — Generate a Report
+
+"Create a professional report from my resume."
+                    ↓
+                Supervisor
+                    ↓
+                   RAG
+                    ↓
+             Retrieved Output
+                    ↓
+              Document Agent
+                    ↓
+              PDF / DOCX
+
+Example 4 — Analyze Data
+
+"Find the average sales by region."
+                    ↓
+                Supervisor
+                    ↓
+               Analytics
+                    ↓
+            Analysis Planner
+                    ↓
+                  Pandas
+                    ↓
+            Computed Result
+                    ↓
+             LLM Explanation
+                    ↓
+              Final Answer
+
+Technology Stack
 
 Layer
 
@@ -812,7 +474,7 @@ RAG
 
 ChromaDB + embeddings + retrieval
 
-Analytics
+Data Processing
 
 Pandas
 
@@ -822,9 +484,9 @@ SQLite + SQLAlchemy
 
 Documents
 
-PDF + DOCX
+PDF / DOCX generation
 
-Visualization
+Workflow UI
 
 React Flow
 
@@ -832,48 +494,177 @@ API Client
 
 Axios
 
-</div>
+Markdown Rendering
 
-17 · The Engineering Idea Behind AgentOS
+React Markdown + Remark GFM
 
-The central idea is simple:
+Run AgentOS Locally
 
-             One User
-                │
-                ▼
-        Natural-language Intent
-                │
-                ▼
-          Supervisor Agent
-                │
-       ┌────────┼────────┐
-       ▼        ▼        ▼
-      RAG    Analytics Research
-       │        │        │
-       └────────┼────────┘
-                ▼
-         Document Agent
-                │
-                ▼
-           Final Output
+Prerequisites
 
-But the engineering challenge is making all of those capabilities work together without turning the application into one tightly coupled AI pipeline.
+Install:
 
-AgentOS addresses that through:
+Python 3.x
 
-centralized orchestration + shared state + specialized agents + dedicated services + persistent storage + observable workflows.
+Node.js and npm
+
+Git
+
+A Groq API key
+
+Verify:
+
+python --version
+node --version
+npm --version
+git --version
+
+1. Clone the repository
+
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd Agent-OS/agentos-scaffold
+
+2. Set up the backend
+
+cd backend
+
+Create a Python virtual environment:
+
+python -m venv .venv
+
+Windows
+
+.venv\Scripts\activate
+
+macOS / Linux
+
+source .venv/bin/activate
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+3. Configure environment variables
+
+Create:
+
+backend/.env
+
+Add the required Groq configuration:
+
+GROQ_API_KEY=your_groq_api_key
+
+Keep .env private and do not commit API keys to GitHub.
+
+4. Start the backend
+
+From backend/:
+
+uvicorn main:app --reload --port 8000
+
+Backend:
+
+http://localhost:8000
+
+Swagger:
+
+http://localhost:8000/docs
+
+Health check:
+
+http://localhost:8000/api/v1/health
+
+5. Set up the frontend
+
+Open a second terminal:
+
+cd Agent-OS/agentos-scaffold/frontend
+
+Install dependencies:
+
+npm install
+
+Start the development server:
+
+npm run dev
+
+Open:
+
+http://localhost:5173
+
+6. Start using AgentOS
+
+Once both services are running:
+
+Open AgentOS
+     ↓
+Enter the Workspace
+     ↓
+Ask a question
+     ↓
+Upload a document when needed
+     ↓
+Search documents / research / analyze
+     ↓
+Generate a report when required
+     ↓
+Inspect the workflow
+     ↓
+Download or manage generated reports
+
+Screenshots
+
+Screenshots can be added here once the final project captures are ready.
+
+No placeholder images are included in this README, so the repository will not display broken or empty image cards.
+
+Project Highlights
+
+┌─────────────────────────────────────────────────────────────┐
+│                        AgentOS                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  🧠 Supervisor        Centralized AI orchestration          │
+│  📚 RAG               Document-grounded answers             │
+│  🔎 Research          Research-oriented workflows           │
+│  📊 Analytics         Natural-language data analysis        │
+│  📄 Documents         PDF / DOCX report generation          │
+│  💾 Memory            Persistent conversations               │
+│  👁️ Workflow          Visible agent execution               │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+Closing
+
+AgentOS was built to explore how multiple specialized AI capabilities can be combined into one coherent application.
+
+The core idea is:
+
+Natural Language
+       ↓
+Intent Understanding
+       ↓
+Workflow Planning
+       ↓
+Specialized AI Execution
+       ↓
+Result Aggregation
+       ↓
+Useful Output
+
+Rather than building a collection of isolated AI features, AgentOS brings them together through centralized orchestration, shared workflow state, dedicated services, persistent storage, and an interactive workspace.
+
+<br>
 
 <div align="center">
 
-✨ Thanks for exploring AgentOS
+Thanks for exploring AgentOS.
 
-Built to explore what happens when AI capabilities become a coordinated system instead of a single chatbot.
+Built with curiosity, engineering, and a lot of debugging.
 
-Ask. Analyze. Research. Retrieve. Generate.
+<br>
 
-<br/>
-
-Built by Chandu
+Chandu
 B.Tech — Artificial Intelligence & Machine Learning
 
 </div>
