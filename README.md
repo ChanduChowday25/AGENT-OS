@@ -36,7 +36,7 @@
 - [Running it locally](#running-it-locally)
 - [Engineering decisions](#engineering-decisions)
 - [Current scope & what's next](#current-scope--whats-next)
-Live link:https://agent-os-1-x800.onrender.com
+- Live link:https://agent-os-1-x800.onrender.com
 ---
 
 ## What this is
