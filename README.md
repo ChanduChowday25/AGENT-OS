@@ -384,7 +384,8 @@ agentos-scaffold/
 │   └── vite.config.js
 └── docs/
 ```
-
+#project photos
+![AgentOS Screenshot](https://github.com/ChanduChowday25/AGENT-OS/blob/main/Screenshot%202026-10-08%20185111.png)
 ---
 
 ## Running it locally
